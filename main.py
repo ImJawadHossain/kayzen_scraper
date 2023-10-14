@@ -11,9 +11,21 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
+
+
+
+###########################################
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
+# Initialize the Google Sheets API client
+scope = ['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+credentials = ServiceAccountCredentials.from_json_keyfile_name('api_data_vaiya.json', scope)
+gc = gspread.authorize(credentials)
+
+# Open a specific Google Sheet by its title
+worksheet = gc.open('Kayzen').sheet1
+#################################################
 
 
 
@@ -33,65 +45,76 @@ driver.get("https://momomedia.kayzen.io/login")
 
 input("Enter: ")
 
-count_page = 1
+count_page = 8
 
 count_page_data = 25
 
+sheet_row_count = 2
+
 while count_page <= 319:
 
-    driver.get('https://momomedia.kayzen.io/creatives?page='+str(count_page)+'&limit=200&perfAdvId=13176')
+    driver.get('https://momomedia.kayzen.io/creatives?page='+str(count_page)+'&limit=25&perfAdvId=13176')
+
+
+    data_count = 1
+
+    while data_count <= 200:
+
+        def get_id_data():
+            try:
+                # Code for getting ID data
+                WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, str('/html[1]/body[1]/div[1]/div[1]/div[1]/md-content[1]/dl-creative-page[1]/div[2]/div[1]/div[1]/md-tab-body[1]/dl-creative-list[1]/div[2]/div[1]/div[1]/md-data-table-container[1]/div[1]/table[1]/tbody[1]/tr["+str(data_count)+"]/td[2]/div[1]'))))
+                id_text = driver.find_element("xpath", str("/html[1]/body[1]/div[1]/div[1]/div[1]/md-content[1]/dl-creative-page[1]/div[2]/div[1]/div[1]/md-tab-body[1]/dl-creative-list[1]/div[2]/div[1]/div[1]/md-data-table-container[1]/div[1]/table[1]/tbody[1]/tr["+str(data_count)+"]/td[2]/div[1]")).text
+                print(id_text)
+                return id_text
+            except:
+                pass
+
+        def get_name_data():
+            try:
+                # Code for getting Name data
+                name_text = driver.find_element("xpath", str("/html[1]/body[1]/div[1]/div[1]/div[1]/md-content[1]/dl-creative-page[1]/div[2]/div[1]/div[1]/md-tab-body[1]/dl-creative-list[1]/div[2]/div[1]/div[1]/md-data-table-container[1]/div[1]/table[1]/tbody[1]/tr["+str(data_count)+"]/td[3]/div[1]")).text
+                print(name_text)
+                return name_text
+            except:
+                pass
+
+
+        def get_video_url():
+            try:
+                # Code for getting Video url
+                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div/div/md-content/dl-creative-page/div[2]/div/div/md-tab-body/dl-creative-list/div[2]/div/div/md-data-table-container/div/table/tbody/tr["+str(data_count)+"]/td[4]/dl-creative-preview/span')))
+                driver.find_element("xpath", str("/html/body/div[1]/div/div/md-content/dl-creative-page/div[2]/div/div/md-tab-body/dl-creative-list/div[2]/div/div/md-data-table-container/div/table/tbody/tr["+str(data_count)+"]/td[4]/dl-creative-preview/span")).click()
+
+
+                iframe = WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[3]/iframe')))
+
+                driver.switch_to.frame(iframe)
+
+                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div[2]/div/mat-dialog-container/kz-creative-view-dialog/div[2]/kz-creative-phones/div/kz-asset-file-phone-preview[1]/div[2]/div[1]/kz-asset-file-preview/kz-videojs-player/div/video')))
 
 
 
-    id_count = 1
+                video_element = driver.find_element("xpath", "/html/body/div/div[2]/div/mat-dialog-container/kz-creative-view-dialog/div[2]/kz-creative-phones/div/kz-asset-file-phone-preview[1]/div[2]/div[1]/kz-asset-file-preview/kz-videojs-player/div/video")
+                video_url = video_element.get_attribute('src')
+                print(video_url)
 
-    print(f"Finding id on page: {count_page}")
-    while id_count <= count_page_data:
-        WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '/html[1]/body[1]/div[1]/div[1]/div[1]/md-content[1]/dl-creative-page[1]/div[2]/div[1]/div[1]/md-tab-body[1]/dl-creative-list[1]/div[2]/div[1]/div[1]/md-data-table-container[1]/div[1]/table[1]/tbody[1]/tr["+str(id_count)+"]/td[2]/div[1]')))
-        id_text = driver.find_element("xpath", str("/html[1]/body[1]/div[1]/div[1]/div[1]/md-content[1]/dl-creative-page[1]/div[2]/div[1]/div[1]/md-tab-body[1]/dl-creative-list[1]/div[2]/div[1]/div[1]/md-data-table-container[1]/div[1]/table[1]/tbody[1]/tr["+str(id_count)+"]/td[2]/div[1]")).text
-        print(f"ID: {id_count}---"+id_text)
-        id_count += 1
+                driver.find_element("xpath", "/html/body/div/div[2]/div/mat-dialog-container/kz-creative-view-dialog/div[1]/button").click()
+                driver.switch_to.default_content()
 
-
-
-
-
-    name_count = 1
-
-    print(f"Finding name on page: {count_page}")
-    while name_count <= count_page_data:
-        name_text = driver.find_element("xpath", str("/html[1]/body[1]/div[1]/div[1]/div[1]/md-content[1]/dl-creative-page[1]/div[2]/div[1]/div[1]/md-tab-body[1]/dl-creative-list[1]/div[2]/div[1]/div[1]/md-data-table-container[1]/div[1]/table[1]/tbody[1]/tr["+str(name_count)+"]/td[3]/div[1]")).text
-        print(f"Name: {name_count}---"+name_text)
-        name_count += 1
+                return video_url
+            except:
+                driver.find_element("xpath", "/html/body/div/div[2]/div/mat-dialog-container/kz-creative-view-dialog/div[1]/button").click()
+                driver.switch_to.default_content()
 
 
 
-    video_count = 1
+        update_data = [get_id_data(), get_name_data(), get_video_url()]
+        worksheet.append_row(update_data)
 
-    print(f"Finding Video on page: {count_page}")
-    while video_count <= count_page_data:
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[1]/div/div/md-content/dl-creative-page/div[2]/div/div/md-tab-body/dl-creative-list/div[2]/div/div/md-data-table-container/div/table/tbody/tr["+str(video_count)+"]/td[4]/dl-creative-preview/span')))
-        driver.find_element("xpath", str("/html/body/div[1]/div/div/md-content/dl-creative-page/div[2]/div/div/md-tab-body/dl-creative-list/div[2]/div/div/md-data-table-container/div/table/tbody/tr["+str(video_count)+"]/td[4]/dl-creative-preview/span")).click()
+        data_count += 1
 
 
-        iframe = WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '/html/body/div[3]/iframe')))
-
-        driver.switch_to.frame(iframe)
-
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, '/html/body/div/div[2]/div/mat-dialog-container/kz-creative-view-dialog/div[2]/kz-creative-phones/div/kz-asset-file-phone-preview[1]/div[2]/div[1]/kz-asset-file-preview/kz-videojs-player/div/video')))
-
-
-
-        video_element = driver.find_element("xpath", "/html/body/div/div[2]/div/mat-dialog-container/kz-creative-view-dialog/div[2]/kz-creative-phones/div/kz-asset-file-phone-preview[1]/div[2]/div[1]/kz-asset-file-preview/kz-videojs-player/div/video")
-        video_url = video_element.get_attribute('src')
-        print(video_url)
-
-        driver.find_element("xpath", "/html/body/div/div[2]/div/mat-dialog-container/kz-creative-view-dialog/div[1]/button").click()
-
-        driver.switch_to.default_content()
-        time.sleep(2)
-
-        video_count += 1
 
 
     print("####################################################################")
